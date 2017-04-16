@@ -27,7 +27,7 @@ USAGE = 'To set a timer: timer <time value> <time unit min/hour> "message"\nE.g 
 
 @app.route("/", methods=['GET', 'POST'])
 def receive():
-    """Respond to incoming calls with a simple text message."""
+    """Handle incoming texts"""
 
     number = request.form['From']
     body = request.form['Body']
@@ -45,6 +45,8 @@ def receive():
             resp.message("Timer set for {} {}s with message {}".format(time, unit, message))
 
             job_id = str(uuid.uuid4()) # create an external job_id
+
+            # add jobs to rq_scheduler queue
             if unit == 'hour':
                 job = scheduler.enqueue_in(timedelta(hours=int(time)), 'run.alert', number, message, job_id)
             else:
@@ -72,7 +74,7 @@ def receive():
 
 
 def alert(number, message, job_id):
-    """Respond to incoming requests."""
+    """Call and send SMS to user"""
 
     print "Alerting ", number
 
